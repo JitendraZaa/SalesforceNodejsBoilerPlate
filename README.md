@@ -1,7 +1,7 @@
 # Salesforce and NodeJs Boiler Plate
 
 Simple Node.js application with OAuth for getting started with Salesforce Integration.
-It only uses ForceTk and Bootstrap.
+It only uses ForceTk, JQuery and Bootstrap.
 
 **Steps to run:**
 * Clone this repository
