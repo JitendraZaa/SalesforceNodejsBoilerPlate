@@ -18,6 +18,22 @@ $('#Query-to-execute').keypress(function (e) {
   }
 }); 
 
+function getLoggedInUserInfo()
+{
+    var url = $.cookie("idURL");  
+    client.ajax(url,
+                 function(data){ 
+                     $("#loggedInUser").html(data.display_name) ; 
+                 },
+                  function (error){
+                      console.log(error);
+                  },
+                  'GET',
+                   '',
+                   true
+                );
+ 
+}
  
  function executeQuery() {
     if (!client.sessionId) {
