@@ -6,6 +6,7 @@ var express = require('express'),
 	
 var https = require('https');
 var fs = require('fs');
+var nforce = require('nforce');
  
 	
 var logFmt = require("logfmt");
@@ -16,29 +17,34 @@ app.use(bodyParser.json());
 
 app.set('port', process.env.PORT || 8080);
 
-/*Allow CORS*/
-/*
-app.use(function(req, res, next) {
-	 
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Response-Time, X-PINGOTHER, X-CSRF-Token,Authorization,X-Authorization'); 
-	res.setHeader('Access-Control-Allow-Methods', '*');
-	res.setHeader('Access-Control-Expose-Headers', 'X-Api-Version, X-Request-Id, X-Response-Time');
-	res.setHeader('Access-Control-Max-Age', '1000');
-	  
-	next();
-});
-*/
+var oauth;
 
 
+var org = nforce.createConnection({
+    clientId: '3MVG9iTxZANhwHQuSJa6AuCgprwyLBe_FcBg8FnmJV6bACvlOItdKQp5s7dzQBDRb.zgswMjUnWD6SHzfp93A',
+    clientSecret: '1958599006192243495',
+    redirectUri: 'http://localhost:8080/auth/sfdc/callback',
+    apiVersion: 'v43.0',  // optional, defaults to current salesforce API version
+    environment: 'production',  // optional, salesforce 'sandbox' or 'production', production default
+    mode: 'multi' // optional, 'single' or 'multi' user mode, multi default
+  });
 
-app.all('/proxy',  function(req, res) { 
-    
-    var url = req.header('SalesforceProxy-Endpoint');  
-    request({ url: url, method: req.method, json: req.body, 
-                    headers: {'Authorization': req.header('X-Authorization'), 'Content-Type' : 'application/json'}, body:req.body }).pipe(res);    
-    
-});
+  app.get('/auth/sfdc', function(req,res){
+    res.redirect(org.getAuthUri());
+  });
+
+app.get('/auth/sfdc/callback', function(req, res) {
+    console.log('** I am In**');
+    org.authenticate({code: req.query.code}, function(err, resp){
+      if(!err) {
+        console.log('Access Token: ' + resp.access_token);
+        oauth = resp;
+        res.sendfile('views/Main.html');
+      } else {
+        console.log('Error: ' + err.message);
+      }
+    });
+  });
  
 app.get('/' ,  function(req,res) {
     res.sendfile('views/index.html');
@@ -47,10 +53,7 @@ app.get('/' ,  function(req,res) {
 app.get('/index*' ,  function(req,res) {
     res.sendfile('views/index.html');
 } );  
- 
-app.get('/oauthcallback.html' ,  function(req,res) {
-    res.sendfile('views/oauthcallback.html');
-} ); 
+  
 
 app.get('/Main*' ,   function(req,res) {
     res.sendfile('views/Main.html');
